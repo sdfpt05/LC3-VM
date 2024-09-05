@@ -326,3 +326,348 @@ static void restore_input_buffering()
 {
     tcsetattr(STDIN_FILENO, TCSANOW, &original_tio);
 }
+
+// Instruction execution functions
+static void exec_add(uint16_t instr)
+{
+    uint16_t r0 = (instr >> 9) & 0x7;
+    uint16_t r1 = (instr >> 6) & 0x7;
+    uint16_t imm_flag = (instr >> 5) & 0x1;
+
+    if (imm_flag)
+    {
+        uint16_t imm5 = sign_extend(instr & 0x1F, 5);
+        reg[r0] = reg[r1] + imm5;
+    }
+    else
+    {
+        uint16_t r2 = instr & 0x7;
+        reg[r0] = reg[r1] + reg[r2];
+    }
+
+    update_flags(r0);
+}
+
+static void exec_and(uint16_t instr)
+{
+    uint16_t r0 = (instr >> 9) & 0x7;
+    uint16_t r1 = (instr >> 6) & 0x7;
+    uint16_t imm_flag = (instr >> 5) & 0x1;
+
+    if (imm_flag)
+    {
+        uint16_t imm5 = sign_extend(instr & 0x1F, 5);
+        reg[r0] = reg[r1] & imm5;
+    }
+    else
+    {
+        uint16_t r2 = instr & 0x7;
+        reg[r0] = reg[r1] & reg[r2];
+    }
+
+    update_flags(r0);
+}
+
+static void exec_br(uint16_t instr)
+{
+    uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
+    uint16_t cond_flag = (instr >> 9) & 0x7;
+    if (cond_flag & reg[R_COND])
+    {
+        reg[R_PC] += pc_offset;
+    }
+}
+
+static void exec_jmp(uint16_t instr)
+{
+    uint16_t r1 = (instr >> 6) & 0x7;
+    reg[R_PC] = reg[r1];
+}
+
+static void exec_jsr(uint16_t instr)
+{
+    uint16_t long_flag = (instr >> 11) & 1;
+    reg[R_R7] = reg[R_PC];
+    if (long_flag)
+    {
+        uint16_t long_pc_offset = sign_extend(instr & 0x7FF, 11);
+        reg[R_PC] += long_pc_offset;
+    }
+    else
+    {
+        uint16_t r1 = (instr >> 6) & 0x7;
+        reg[R_PC] = reg[r1];
+    }
+}
+
+static void exec_ld(uint16_t instr)
+{
+    uint16_t r0 = (instr >> 9) & 0x7;
+    uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
+    reg[r0] = mem_read(reg[R_PC] + pc_offset);
+    update_flags(r0);
+}
+
+static void exec_ldi(uint16_t instr)
+{
+    uint16_t r0 = (instr >> 9) & 0x7;
+    uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
+    reg[r0] = mem_read(mem_read(reg[R_PC] + pc_offset));
+    update_flags(r0);
+}
+
+static void exec_ldr(uint16_t instr)
+{
+    uint16_t r0 = (instr >> 9) & 0x7;
+    uint16_t r1 = (instr >> 6) & 0x7;
+    uint16_t offset = sign_extend(instr & 0x3F, 6);
+    reg[r0] = mem_read(reg[r1] + offset);
+    update_flags(r0);
+}
+
+static void exec_lea(uint16_t instr)
+{
+    uint16_t r0 = (instr >> 9) & 0x7;
+    uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
+    reg[r0] = reg[R_PC] + pc_offset;
+    update_flags(r0);
+}
+
+static void exec_not(uint16_t instr)
+{
+    uint16_t r0 = (instr >> 9) & 0x7;
+    uint16_t r1 = (instr >> 6) & 0x7;
+    reg[r0] = ~reg[r1];
+    update_flags(r0);
+}
+
+static void exec_st(uint16_t instr)
+{
+    uint16_t r0 = (instr >> 9) & 0x7;
+    uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
+    mem_write(reg[R_PC] + pc_offset, reg[r0]);
+}
+
+static void exec_sti(uint16_t instr)
+{
+    uint16_t r0 = (instr >> 9) & 0x7;
+    uint16_t pc_offset = sign_extend(instr & 0x1FF, 9);
+    mem_write(mem_read(reg[R_PC] + pc_offset), reg[r0]);
+}
+
+static void exec_str(uint16_t instr)
+{
+    uint16_t r0 = (instr >> 9) & 0x7;
+    uint16_t r1 = (instr >> 6) & 0x7;
+    uint16_t offset = sign_extend(instr & 0x3F, 6);
+    mem_write(reg[r1] + offset, reg[r0]);
+}
+
+static void exec_trap(uint16_t instr)
+{
+    switch (instr & 0xFF)
+    {
+    case TRAP_GETC:
+        trap_getc();
+        break;
+    case TRAP_OUT:
+        trap_out();
+        break;
+    case TRAP_PUTS:
+        trap_puts();
+        break;
+    case TRAP_IN:
+        trap_in();
+        break;
+    case TRAP_PUTSP:
+        trap_putsp();
+        break;
+    case TRAP_HALT:
+        trap_halt();
+        break;
+    default:
+        PRINT_ERROR("Unknown trap code: %X\n", instr & 0xFF);
+        running = 0;
+        break;
+    }
+}
+
+// Trap Routines
+static void trap_getc(void)
+{
+    reg[R_R0] = (uint16_t)getchar();
+    update_flags(R_R0);
+}
+
+static void trap_out(void)
+{
+    putc((char)reg[R_R0], stdout);
+    fflush(stdout);
+}
+
+static void trap_puts(void)
+{
+    uint16_t *c = memory + reg[R_R0];
+    while (*c)
+    {
+        putc((char)*c, stdout);
+        ++c;
+    }
+    fflush(stdout);
+}
+
+static void trap_in(void)
+{
+    printf("Enter a character: ");
+    char c = getchar();
+    putc(c, stdout);
+    reg[R_R0] = (uint16_t)c;
+    update_flags(R_R0);
+    fflush(stdout);
+}
+
+static void trap_putsp(void)
+{
+    uint16_t *c = memory + reg[R_R0];
+    while (*c)
+    {
+        char char1 = (*c) & 0xFF;
+        putc(char1, stdout);
+        char char2 = (*c) >> 8;
+        if (char2)
+            putc(char2, stdout);
+        ++c;
+    }
+    fflush(stdout);
+}
+
+static void trap_halt(void)
+{
+    puts("HALT");
+    fflush(stdout);
+    running = 0;
+}
+
+// Helper function to dump memory contents (for debugging)
+static void memory_dump(uint16_t start, uint16_t count)
+{
+    for (uint16_t i = 0; i < count; i++)
+    {
+        if (i % 8 == 0)
+        {
+            printf("\n%04X: ", start + i);
+        }
+        printf("%04X ", memory[start + i]);
+    }
+    printf("\n");
+}
+
+// Helper function to dump register contents (for debugging)
+static void register_dump(void)
+{
+    for (int i = 0; i < R_COUNT; i++)
+    {
+        printf("R%d: %04X ", i, reg[i]);
+        if (i % 3 == 2)
+            printf("\n");
+    }
+    printf("\n");
+}
+
+// Main execution loop (alternative implementation)
+static void execute(void)
+{
+    while (running)
+    {
+        uint16_t instr = mem_read(reg[R_PC]++);
+        uint16_t op = instr >> 12;
+
+        switch (op)
+        {
+        case OP_ADD:
+            exec_add(instr);
+            break;
+        case OP_AND:
+            exec_and(instr);
+            break;
+        case OP_BR:
+            exec_br(instr);
+            break;
+        case OP_JMP:
+            exec_jmp(instr);
+            break;
+        case OP_JSR:
+            exec_jsr(instr);
+            break;
+        case OP_LD:
+            exec_ld(instr);
+            break;
+        case OP_LDI:
+            exec_ldi(instr);
+            break;
+        case OP_LDR:
+            exec_ldr(instr);
+            break;
+        case OP_LEA:
+            exec_lea(instr);
+            break;
+        case OP_NOT:
+            exec_not(instr);
+            break;
+        case OP_ST:
+            exec_st(instr);
+            break;
+        case OP_STI:
+            exec_sti(instr);
+            break;
+        case OP_STR:
+            exec_str(instr);
+            break;
+        case OP_TRAP:
+            exec_trap(instr);
+            break;
+        case OP_RES:
+        case OP_RTI:
+        default:
+            PRINT_ERROR("BAD OPCODE: %d\n", op);
+            running = 0;
+            break;
+        }
+
+        // register_dump();
+        // memory_dump(PC_START, 16);
+    }
+}
+
+int main(int argc, char *argv[])
+{
+    if (argc < 2)
+    {
+        PRINT_ERROR("Usage: %s <image-file1> ...\n", argv[0]);
+        exit(2);
+    }
+
+    for (int j = 1; j < argc; ++j)
+    {
+        if (!read_image(argv[j]))
+        {
+            EXIT_WITH_ERROR("Failed to load image: %s\n", argv[j]);
+        }
+    }
+
+    signal(SIGINT, handle_interrupt);
+    disable_input_buffering();
+
+    // Set the PC to starting position
+    // 0x3000 is the default
+    enum
+    {
+        PC_START = 0x3000
+    };
+    reg[R_PC] = PC_START;
+
+    execute();
+
+    restore_input_buffering();
+    return 0;
+}
