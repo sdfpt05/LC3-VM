@@ -115,3 +115,11 @@ static void exec_st(uint16_t instr);
 static void exec_sti(uint16_t instr);
 static void exec_str(uint16_t instr);
 static void exec_trap(uint16_t instr);
+
+// Trap routines
+static void trap_getc(void);
+static void trap_out(void);
+static void trap_puts(void);
+static void trap_in(void);
+static void trap_putsp(void);
+static void trap_halt(void);
