@@ -85,6 +85,10 @@ After compiling the program, you can run it using a binary image file. The binar
    ./vm my_program.img
 ```
 
+## Trap Codes
+
+## Example
+
 The virtual machine will read the binary file into memory, set the program counter to a default start location (0x3000), and begin executing instructions until it encounters a halt command or an invalid instruction.
 
 ## License
