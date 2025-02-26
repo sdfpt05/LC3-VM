@@ -1,0 +1,1 @@
+/usr/bin/cc  -Wall -Wextra -pedantic CMakeFiles/lc3_vm.dir/src/lc3_core.c.o CMakeFiles/lc3_vm.dir/src/lc3_instructions.c.o CMakeFiles/lc3_vm.dir/src/lc3_traps.c.o CMakeFiles/lc3_vm.dir/src/main.c.o -o lc3_vm  -lm 

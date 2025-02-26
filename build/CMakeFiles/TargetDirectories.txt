@@ -1,0 +1,8 @@
+/home/kev/sdfpt04/stay_off_the_weed/LC3-VM/build/CMakeFiles/lc3_vm.dir
+/home/kev/sdfpt04/stay_off_the_weed/LC3-VM/build/CMakeFiles/test.dir
+/home/kev/sdfpt04/stay_off_the_weed/LC3-VM/build/CMakeFiles/edit_cache.dir
+/home/kev/sdfpt04/stay_off_the_weed/LC3-VM/build/CMakeFiles/rebuild_cache.dir
+/home/kev/sdfpt04/stay_off_the_weed/LC3-VM/build/CMakeFiles/list_install_components.dir
+/home/kev/sdfpt04/stay_off_the_weed/LC3-VM/build/CMakeFiles/install.dir
+/home/kev/sdfpt04/stay_off_the_weed/LC3-VM/build/CMakeFiles/install/local.dir
+/home/kev/sdfpt04/stay_off_the_weed/LC3-VM/build/CMakeFiles/install/strip.dir
