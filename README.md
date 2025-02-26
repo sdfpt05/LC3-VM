@@ -1,96 +1,71 @@
 # LC3-VM
 
-This my attempt at building a virtual machine that can run assembly programs based on the [lc3](https://en.wikipedia.org/wiki/Little_Computer_3) computer.
-It written in C and simulates a 16-bit computer with a basic instruction set and a limited memory space. The virtual machine loads a binary image and executes the instructions stored in memory.
-
-## Resourses
-
-- [Write your own virtual machine](https://www.jmeiners.com/lc3-vm/)
-- [https://justinmeiners.github.io/lc3-vm/supplies/lc3-isa.pdf](https://justinmeiners.github.io/lc3-vm/supplies/lc3-isa.pdf)
-- [LC3-Simulator](https://wchargin.com/lc3web/)
-
-## Table of Contents
-
-- [Features](#features)
-- [Instruction Set](#instruction-set)
-- [Installation](#installation)
-- [Usage](#usage)
-- [Trap Codes](#trap-codes)
-- [Example](#example)
-- [License](#license)
+A virtual machine implementation that can run programs written in the [LC-3 (Little Computer 3)](https://en.wikipedia.org/wiki/Little_Computer_3) assembly language. It is written in C and simulates a 16-bit computer with a basic instruction set and a limited memory space.
 
 ## Features
 
-- Simulates a 16-bit processor with 8 general-purpose registers.
-- Executes basic arithmetic, logic, control, and memory instructions.
-- Supports input/output operations with terminal-based I/O.
-- Handles memory-mapped registers for basic keyboard input simulation.
-- Can load and run binary image files representing the program.
+- **Complete LC-3 Instruction Set**: Supports all LC-3 instructions including arithmetic, logic, control flow, and memory operations
+- **Memory Management**: 16-bit address space with 65,536 memory locations
+- **Register Operations**: 8 general-purpose registers, program counter, and condition flags
+- **I/O Capabilities**: Terminal-based input/output through trap routines
+- **Binary Image Loading**: Loads and executes LC-3 binary image files
+- **Debug Features**: Register and memory inspection for troubleshooting
 
-## Instruction Set
+## Architecture
 
-The virtual machine supports a set of operations, including:
+The LC-3 architecture includes:
 
-- **Arithmetic and Logic**:
+- **Memory**: 16-bit address space (65,536 locations)
+- **Registers**:
+  - 8 general-purpose registers (R0-R7)
+  - Program Counter (PC)
+  - Condition Register (COND)
+- **Instructions**: 16-bit instruction format with various operations
+- **I/O**: Memory-mapped I/O for keyboard input and display output
 
-  - `ADD` - Adds two values.
-  - `AND` - Performs bitwise AND between two values.
-  - `NOT` - Performs bitwise negation.
+## Building the VM
 
-- **Control**:
+### Prerequisites
 
-  - `BR` - Branches to a new location based on condition flags.
-  - `JMP` - Jumps to a register's address.
-  - `JSR` - Jumps to a subroutine and saves the return address.
+- C Compiler (GCC, Clang, etc.)
+- CMake (version 3.10 or higher)
+- Make
 
-- **Memory**:
-
-  - `LD` - Loads data from memory.
-  - `ST` - Stores data to memory.
-  - `LDR`, `STR`, `LDI`, `STI`, `LEA` - Variations of load and store instructions.
-
-- **Traps**:
-  - Traps are special instructions for input/output operations, like reading from the keyboard, writing to the screen, etc.
-
-## Installation
-
-To install and run the VM simulator on your system, follow these steps:
+### Build Instructions
 
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/your-username/virtual-machine-simulator.git
-   cd virtual-machine-simulator
+   git clone https://github.com/your-username/lc3-vm.git
+   cd lc3-vm
    ```
-2. **Compile the Program**:
-
-```bash
-
-    gcc -o vm vm.c
-```
-
-    This will compile the vm.c file into an executable named vm.
+2. **Create a build directory**:
+    ```bash
+    mkdir build
+    cd build
+    ```
+3. **Configure with CMake**:
+    ```bash
+    cmake ..
+    ```
+4. **Build the project**:
+    ```bash
+    make
+    ```
+5. **Install (optional)**:
+    ```bash
+    make install
+    ```
 
 ## Usage
 
-After compiling the program, you can run it using a binary image file. The binary image file should contain the machine code to be executed by the VM.
+After building the VM, you can run it with:
 
 ```bash
-./vm <image-file1> <image-file2> ...
+./lc3_vm [options] <image-file1> [image-file2 ...]
 ```
 
-- The program expects at least one image file as input, which contains the binary instructions.
-- Example:
+### Command-line Options
 
-```bash
-   ./vm my_program.img
-```
-
-## Trap Codes
-
-## Example
-
-The virtual machine will read the binary file into memory, set the program counter to a default start location (0x3000), and begin executing instructions until it encounters a halt command or an invalid instruction.
-
-## License
-
-This project is licensed under the MIT License. See the LICENSE file for details.
+- `-h, --help`: Display help message
+- `-d, --debug`: Enable debug mode
+- `-m, --memory`: Dump memory before starting execution

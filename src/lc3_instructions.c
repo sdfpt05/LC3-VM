@@ -1,10 +1,5 @@
+#include <stdio.h>
 #include "lc3.h"
-
-extern uint16_t reg[R_COUNT];
-extern uint16_t mem_read(uint16_t address);
-extern void mem_write(uint16_t address, uint16_t val);
-extern void update_flags(uint16_t r);
-extern uint16_t sign_extend(uint16_t x, int bit_count);
 
 void exec_add(uint16_t instr)
 {
