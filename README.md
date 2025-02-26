@@ -69,3 +69,33 @@ After building the VM, you can run it with:
 - `-h, --help`: Display help message
 - `-d, --debug`: Enable debug mode
 - `-m, --memory`: Dump memory before starting execution
+
+## LC-3 Instruction Set
+
+The VM supports all standard LC-3 instructions:
+
+### Arithmetic and Logic
+
+- `ADD` - Adds two values
+- `AND` - Performs bitwise AND between two values
+- `NOT` - Performs bitwise negation
+
+### Control Flow
+
+- `BR` - Branches to a new location based on condition flags
+- `JMP` - Jumps to an address in a register
+- `JSR` - Jumps to a subroutine and saves the return address
+
+### Memory Operations
+
+- `LD` - Loads data from memory
+- `ST` - Stores data to memory
+- `LDR` - Loads data from memory with register offset
+- `STR` - Stores data to memory with register offset
+- `LDI` - Loads data indirectly from memory
+- `STI` - Stores data indirectly to memory
+- `LEA` - Loads effective address
+
+### System Operations
+
+- `TRAP` - Executes system calls/functions
